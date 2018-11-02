@@ -1,0 +1,27 @@
+{
+	"configurations": [
+		{
+			"name": "Win32",
+			"includePath": [
+				"${workspaceFolder}/src",
+				"K:/Program Files/opencv/opencv/build/include"
+			],
+			"browse": {
+				"path": [
+					"${workspaceFolder}/src",
+					"K:/Program Files/opencv/opencv/build/include"
+				]
+			},
+			"defines": [
+				"_DEBUG",
+				"UNICODE",
+				"_UNICODE"
+			],
+			"compilerPath": "G:\\Program Files\\LLVM\\bin\\gcc.exe",
+			"cStandard": "c11",
+			"cppStandard": "c++17",
+			"intelliSenseMode": "clang-x64"
+		}
+	],
+	"version": 4
+}
