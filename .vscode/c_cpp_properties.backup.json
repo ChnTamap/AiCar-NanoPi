@@ -4,12 +4,16 @@
 			"name": "Win32",
 			"includePath": [
 				"${workspaceFolder}/src",
-				"K:/Program Files/opencv/opencv/build/include"
+				"K:/Program Files/opencv/opencv/build/include",
+				"K:/Program Files/NanoPi/usr/include",
+				"K:/Program Files/NanoPi/usr/local/include"
 			],
 			"browse": {
 				"path": [
 					"${workspaceFolder}/src",
-					"K:/Program Files/opencv/opencv/build/include"
+					"K:/Program Files/opencv/opencv/build/include",
+					"K:/Program Files/NanoPi/usr/include",
+					"K:/Program Files/NanoPi/usr/local/include"
 				]
 			},
 			"defines": [
