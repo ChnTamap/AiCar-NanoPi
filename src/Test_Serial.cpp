@@ -22,12 +22,16 @@
  ***********************************************************************
  */
 
+/*±‡“Î√¸¡Ó g++ ./src/Test_Serial.cpp -o ./build/Test_serial -lwiringPi -lpthread */
+
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
 #include "unistd.h"
 
 #include <wiringSerial.h>
+
+#define USART_DATA_LEN 3
 
 int main()
 {
@@ -45,12 +49,14 @@ int main()
 	{
 		// putchar(serialGetchar(fd));
 		// fflush(stdout);
-		short speed[2];
+		short speed[USART_DATA_LEN];
 		int i;
-		scanf("%d,%d", speed, speed + 1);
-		for (i = 0; i < 4; i++)
+		scanf("%hd,%hd,%hd", speed, speed + 1, speed + 2);
+		for (i = 0; i < USART_DATA_LEN * 2; i++)
 		{
 			serialPutchar(fd, ((unsigned char *)speed)[i]);
+			printf("%d ", ((unsigned char *)speed)[i]);
 		}
+		printf("\n");
 	}
 }
