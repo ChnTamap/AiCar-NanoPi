@@ -3,6 +3,8 @@
 #include "opencv2/imgproc/imgproc.hpp"
 #include "time.h"
 #include "unistd.h"
+//Test WiringPi
+#include "wiringSerial.h"
 
 using namespace cv;
 using namespace std;
@@ -52,13 +54,26 @@ typedef struct
 	uint16_t y;
 } Vector2D;
 
-int detectBall(Mat img)
+typedef struct
+{
+	uint16_t x;
+	uint16_t y;
+	uint16_t h;
+	uint16_t w;
+} VectorRect;
+
+int detectBall(Mat img, VectorRect *maxRect)
 {
 	unsigned int cols = img.cols;  //Width
 	unsigned int rows = img.rows;  //Height
 	unsigned int unit = rows / 32; //Unit
 	unsigned int x, y, xP, yP;
 	unsigned int xMin, yMin, xMax, yMax;
+	//Max
+	maxRect->x = 0;
+	maxRect->y = 0;
+	maxRect->h = 0;
+	maxRect->w = 0;
 	//Color point
 	uchar *color;
 	uchar *colorLine;
@@ -155,14 +170,18 @@ int detectBall(Mat img)
 						return -1;
 					}
 				}
-				if (xMax - xMin > unit * 8)
+				//Find max size
+				if (xMax - xMin > maxRect->w)
 				{
-					cout << "(" << xMax + xMin / 2 << "," << yMax + yMin / 2 << ")";
+					maxRect->w = xMax - xMin;
+					maxRect->x = xMax + xMin / 2;
+					maxRect->y = yMax + yMin / 2;
 				}
 			}
 		}
 	}
 
+	cout << "(" << maxRect->x << "," << maxRect->y << "," << maxRect->w << ")";
 	cout << "        " << flush;
 
 	return 0;
@@ -194,6 +213,14 @@ int cvMain(void)
 	tickSec = (double)getTickCount() - tick;
 	cout << tickSec << "Tick per sec" << endl;
 
+	/* Test Wiring Pi */
+	int fd;
+	if ((fd = serialOpen("/dev/ttyS1", 115200)) < 0)
+	{
+		fprintf(stderr, "Unable to open serial device: %s\n", strerror(errno));
+		return 1;
+	}
+
 	/* Loop */
 	//Loop init
 	int key;
@@ -214,7 +241,8 @@ int cvMain(void)
 		//Find Color
 		inRange(src, Scalar(iLowH, iLowS, iLowV), Scalar(iHighH, iHighS, iHighV), frame);
 		//Test
-		detectBall(frame);
+		VectorRect maxRect;
+		detectBall(frame, &maxRect);
 
 #ifdef IS_DISPLAY
 		//Show frame
@@ -235,6 +263,12 @@ int cvMain(void)
 		if (tick < (TICK_MS * 25))
 		{
 			usleep(((TICK_MS * 25) - tick) / 1000);
+		}
+
+		//Send Rect (Test WiringPi)
+		for (int i = 0; i < 3 * 2; i++)
+		{
+			serialPutchar(fd, ((unsigned char *)&maxRect)[i]);
 		}
 	}
 
