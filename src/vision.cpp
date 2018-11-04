@@ -217,7 +217,7 @@ int cvMain(void)
 	int fd;
 	if ((fd = serialOpen("/dev/ttyS1", 115200)) < 0)
 	{
-		fprintf(stderr, "Unable to open serial device: %s\n", strerror(errno));
+		cout << "Error of Serial\n";
 		return 1;
 	}
 
@@ -266,9 +266,12 @@ int cvMain(void)
 		}
 
 		//Send Rect (Test WiringPi)
-		for (int i = 0; i < 3 * 2; i++)
+		if (maxRect.x)
 		{
-			serialPutchar(fd, ((unsigned char *)&maxRect)[i]);
+			for (int i = 0; i < 3 * 2; i++)
+			{
+				serialPutchar(fd, ((unsigned char *)&maxRect)[i]);
+			}
 		}
 	}
 
