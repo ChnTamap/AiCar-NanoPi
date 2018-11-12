@@ -174,14 +174,15 @@ int detectBall(Mat img, VectorRect *maxRect)
 				if (xMax - xMin > maxRect->w)
 				{
 					maxRect->w = xMax - xMin;
-					maxRect->x = xMax + xMin / 2;
-					maxRect->y = yMax + yMin / 2;
+					maxRect->h = yMax - yMin;
+					maxRect->x = (xMax + xMin) / 2;
+					maxRect->y = (yMax + yMin) / 2;
 				}
 			}
 		}
 	}
 
-	cout << "(" << maxRect->x << "," << maxRect->y << "," << maxRect->w << ")";
+	cout << "(" << maxRect->x << "," << maxRect->y << "," << maxRect->w << "," << maxRect->h << ")";
 	cout << "        " << flush;
 
 	return 0;
@@ -196,6 +197,9 @@ int cvMain(void)
 		cout << "Cannot open the cam" << endl;
 		return -1;
 	}
+	cout << "Open Cam success:(" << cap.get(CV_CAP_PROP_FRAME_WIDTH) << "," << cap.get(CV_CAP_PROP_FRAME_HEIGHT) << ")" << endl;
+	cap >> src;
+	cout << "Read Img success:(" << src.rows << "," << src.cols << ")" << endl;
 
 	/* Init Display */
 #ifdef IS_DISPLAY
@@ -268,7 +272,7 @@ int cvMain(void)
 		//Send Rect (Test WiringPi)
 		if (maxRect.x)
 		{
-			for (int i = 0; i < 3 * 2; i++)
+			for (int i = 0; i < 4 * 2; i++)
 			{
 				serialPutchar(fd, ((unsigned char *)&maxRect)[i]);
 			}
