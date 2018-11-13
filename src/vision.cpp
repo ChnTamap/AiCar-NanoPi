@@ -269,6 +269,15 @@ int cvMain(void)
 			usleep(((TICK_MS * 25) - tick) / 1000);
 		}
 
+		//Receive Command
+		if(serialDataAvail(fd))
+		{
+			key = serialGetchar(fd);
+			if(key == 1 || key == 3)
+			{
+				maxRect.x = 0;
+			}
+		}
 		//Send Rect (Test WiringPi)
 		if (maxRect.x)
 		{
