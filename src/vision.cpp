@@ -9,12 +9,22 @@
 using namespace cv;
 using namespace std;
 
-// #define IS_DISPLAY
+#define IS_DISPLAY
+#define IS_SEND
+// #define IS_COLOR
 #define TICK_MS 1000000
 
 //Param
-int iLowH = 107;
-int iHighH = 136;
+#define LH_BLUE 107
+#define HH_BLUE 136
+#define LH_GREEN 69
+#define HH_GREEN 96
+#define LH_BALL LH_BLUE
+#define HH_BALL HH_BLUE
+#define LH_RECT LH_GREEN
+#define HH_RECT HH_GREEN
+int iLowH = LH_BALL;  //69
+int iHighH = HH_BALL; //96
 int iLowS = 128;
 int iHighS = 255;
 int iLowV = 81;
@@ -238,6 +248,15 @@ int cvMain(void)
 
 		//Get frame
 		cap >> src;
+
+#ifdef IS_DISPLAY
+#ifdef IS_COLOR
+		//Show Src
+		imshow("Video", src);
+		waitKey(1);
+#endif // IS_COLOR
+#endif // IS_DISPLAY
+
 		Vector<Mat> hsvPanels;
 		cout << "\r";
 		//RGB To HSV
@@ -249,16 +268,18 @@ int cvMain(void)
 		detectBall(frame, &maxRect);
 
 #ifdef IS_DISPLAY
-		//Show frame
+#ifndef IS_COLOR
+		//Show range frame
 		imshow("Video", frame);
 		waitKey(1);
+#endif // IS_COLOR
 #endif // IS_DISPLAY
 
 		//Count
 		count++;
 		if ((double)getTickCount() - tickSec > (TICK_MS * 1000))
 		{
-			cout << "Real FPS:" << count << "|" << flush;
+			cout << "Real FPS:" << count << "|" << key << "||" << flush;
 			count = 0;
 			tickSec = (double)getTickCount();
 		}
@@ -270,15 +291,26 @@ int cvMain(void)
 		}
 
 		//Receive Command
-		if(serialDataAvail(fd))
+		if (serialDataAvail(fd))
 		{
 			key = serialGetchar(fd);
-			if(key == 1 || key == 3)
+			if (key == 0)
 			{
-				maxRect.x = 0;
+				iLowH = LH_BALL; //Ball
+				iHighH = HH_BALL;
+			}
+			else if (key == 2)
+			{
+				iLowH = LH_RECT; //Rect
+				iHighH = HH_RECT;
 			}
 		}
-		//Send Rect (Test WiringPi)
+		if (key == 1 || key == 3)
+		{
+			maxRect.x = 0;
+		}
+//Send Rect (Test WiringPi)
+#ifdef IS_SEND
 		if (maxRect.x)
 		{
 			for (int i = 0; i < 4 * 2; i++)
@@ -286,6 +318,7 @@ int cvMain(void)
 				serialPutchar(fd, ((unsigned char *)&maxRect)[i]);
 			}
 		}
+#endif // IS_SEND
 	}
 
 	return 0;
