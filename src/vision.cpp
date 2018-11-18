@@ -10,24 +10,25 @@ using namespace cv;
 using namespace std;
 
 #define IS_DISPLAY
-#define IS_SEND
-// #define IS_COLOR
+// #define IS_SEND
+#define IS_COLOR
+#define IS_NEGATIVE
 #define TICK_MS 1000000
 
 //Param
-#define LH_BLUE 107
-#define HH_BLUE 136
-#define LH_GREEN 69
-#define HH_GREEN 96
+#define LH_BLUE 106
+#define HH_BLUE 135
+#define LH_GREEN 40
+#define HH_GREEN 70
 #define LH_BALL LH_BLUE
 #define HH_BALL HH_BLUE
 #define LH_RECT LH_GREEN
 #define HH_RECT HH_GREEN
 int iLowH = LH_BALL;  //69
 int iHighH = HH_BALL; //96
-int iLowS = 128;
+int iLowS = 120;
 int iHighS = 255;
-int iLowV = 81;
+int iLowV = 70;
 int iHighV = 255;
 //Image
 Mat frame;
@@ -187,6 +188,9 @@ int detectBall(Mat img, VectorRect *maxRect)
 					maxRect->h = yMax - yMin;
 					maxRect->x = (xMax + xMin) / 2;
 					maxRect->y = (yMax + yMin) / 2;
+#ifdef IS_NEGATIVE
+					maxRect->y = rows - maxRect->y;
+#endif // IS_NEGATIVE
 				}
 			}
 		}
@@ -289,7 +293,7 @@ int cvMain(void)
 		{
 			usleep(((TICK_MS * 25) - tick) / 1000);
 		}
-
+#ifdef IS_SEND
 		//Receive Command
 		if (serialDataAvail(fd))
 		{
@@ -310,7 +314,6 @@ int cvMain(void)
 			maxRect.x = 0;
 		}
 //Send Rect (Test WiringPi)
-#ifdef IS_SEND
 		if (maxRect.x)
 		{
 			for (int i = 0; i < 4 * 2; i++)
@@ -320,6 +323,5 @@ int cvMain(void)
 		}
 #endif // IS_SEND
 	}
-
 	return 0;
 }
