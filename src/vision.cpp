@@ -9,9 +9,9 @@
 using namespace cv;
 using namespace std;
 
-#define IS_DISPLAY
-// #define IS_SEND
-#define IS_COLOR
+// #define IS_DISPLAY
+#define IS_SEND
+// #define IS_COLOR
 #define IS_NEGATIVE
 #define TICK_MS 1000000
 
@@ -69,8 +69,8 @@ typedef struct
 {
 	uint16_t x;
 	uint16_t y;
-	uint16_t h;
 	uint16_t w;
+	uint16_t h;
 } VectorRect;
 
 int detectBall(Mat img, VectorRect *maxRect)
@@ -242,8 +242,15 @@ int cvMain(void)
 	/* Loop */
 	//Loop init
 	int key;
+	int i;
 	tickSec = (double)getTickCount();
 	count = 0;
+	//Start command
+	VectorRect maxRect = {0, 0, 0, 0};
+	for (i = 0; i < 4 * 2; i++)
+	{
+		serialPutchar(fd, ((unsigned char *)&maxRect)[i]);
+	}
 	//Loop
 	while (true)
 	{
@@ -268,7 +275,6 @@ int cvMain(void)
 		//Find Color
 		inRange(src, Scalar(iLowH, iLowS, iLowV), Scalar(iHighH, iHighS, iHighV), frame);
 		//Test
-		VectorRect maxRect;
 		detectBall(frame, &maxRect);
 
 #ifdef IS_DISPLAY
@@ -313,10 +319,10 @@ int cvMain(void)
 		{
 			maxRect.x = 0;
 		}
-//Send Rect (Test WiringPi)
+		//Send Rect (Test WiringPi)
 		if (maxRect.x)
 		{
-			for (int i = 0; i < 4 * 2; i++)
+			for (i = 0; i < 4 * 2; i++)
 			{
 				serialPutchar(fd, ((unsigned char *)&maxRect)[i]);
 			}
