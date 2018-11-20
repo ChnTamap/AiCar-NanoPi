@@ -247,10 +247,12 @@ int cvMain(void)
 	count = 0;
 	//Start command
 	VectorRect maxRect = {0, 0, 0, 0};
+#ifdef IS_SEND
 	for (i = 0; i < 4 * 2; i++)
 	{
 		serialPutchar(fd, ((unsigned char *)&maxRect)[i]);
 	}
+#endif
 	//Loop
 	while (true)
 	{
@@ -299,7 +301,6 @@ int cvMain(void)
 		{
 			usleep(((TICK_MS * 25) - tick) / 1000);
 		}
-#ifdef IS_SEND
 		//Receive Command
 		if (serialDataAvail(fd))
 		{
@@ -319,6 +320,7 @@ int cvMain(void)
 		{
 			maxRect.x = 0;
 		}
+#ifdef IS_SEND
 		//Send Rect (Test WiringPi)
 		if (maxRect.x)
 		{
