@@ -16,6 +16,8 @@ using namespace std;
 #define TICK_MS 1000000
 
 //Param
+#define LH_RED 0
+#define HH_RED 33
 #define LH_BLUE 106
 #define HH_BLUE 135
 #define LH_GREEN 40
@@ -30,11 +32,31 @@ int iLowS = 120;
 int iHighS = 255;
 int iLowV = 70;
 int iHighV = 255;
+int iColor = 0;
 //Image
 Mat frame;
 Mat src;
 //Cam
 VideoCapture cap;
+
+void selectColor(int v)
+{
+	if(v == 0)
+	{
+		iLowH = LH_RED;
+		iHighH = HH_RED;
+	}
+	else if(v == 1)
+	{
+		iLowH = LH_BLUE;
+		iHighH = HH_BLUE;
+	}
+	else if(v == 2)
+	{
+		iLowH = LH_GREEN;
+		iHighH = HH_GREEN;
+	}
+}
 
 void initCtrlWindow(void)
 {
@@ -50,6 +72,8 @@ void initCtrlWindow(void)
 
 	cvCreateTrackbar("LowV", "Ctrl", &iLowV, 255); //Value (0 - 255)
 	cvCreateTrackbar("HighV", "Ctrl", &iHighV, 255);
+
+	cvCreateTrackbar("Color", "Ctrl", &iColor, 2, selectColor); //Color
 }
 
 typedef struct
