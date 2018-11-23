@@ -17,20 +17,25 @@ using namespace std;
 
 //Param
 #define LH_RED 0
-#define HH_RED 33
+#define HH_RED 24
 #define LH_BLUE 106
 #define HH_BLUE 135
-#define LH_GREEN 40
-#define HH_GREEN 70
+#define LH_GREEN 37
+#define HH_GREEN 77
 #define LH_BALL LH_BLUE
 #define HH_BALL HH_BLUE
 #define LH_RECT LH_GREEN
 #define HH_RECT HH_GREEN
+//SV
+#define LS_BALL 60
+#define LV_BALL 100
+#define LS_RECT 100
+#define LV_RECT 45
 int iLowH = LH_BALL;  //69
 int iHighH = HH_BALL; //96
-int iLowS = 120;
+int iLowS = 80;
 int iHighS = 255;
-int iLowV = 70;
+int iLowV = 45;
 int iHighV = 255;
 int iColor = 0;
 //Image
@@ -41,21 +46,28 @@ VideoCapture cap;
 
 void selectColor(int v)
 {
-	if(v == 0)
+	if (v == 0)
 	{
 		iLowH = LH_RED;
 		iHighH = HH_RED;
+		iLowS = LS_BALL;
+		iLowV = LV_BALL;
 	}
-	else if(v == 1)
+	else if (v == 1)
 	{
 		iLowH = LH_BLUE;
 		iHighH = HH_BLUE;
+		iLowS = LS_BALL;
+		iLowV = LV_BALL;
 	}
-	else if(v == 2)
+	else if (v == 2)
 	{
 		iLowH = LH_GREEN;
 		iHighH = HH_GREEN;
+		iLowS = LS_RECT;
+		iLowV = LV_RECT;
 	}
+	cout << "(" << iLowH << "," << iHighH << "),(" << iLowS << "," << iHighS << "),(" << iLowV << "," << iHighV << ")" << endl;
 }
 
 void initCtrlWindow(void)
@@ -104,6 +116,13 @@ int detectBall(Mat img, VectorRect *maxRect)
 	unsigned int unit = rows / 32; //Unit
 	unsigned int x, y, xP, yP;
 	unsigned int xMin, yMin, xMax, yMax;
+	unsigned int y_realMin =
+#ifdef IS_NEGATIVE
+		0
+#else
+		rows
+#endif // IS_NEGATIVE
+		;
 	//Max
 	maxRect->x = 0;
 	maxRect->y = 0;
@@ -206,12 +225,23 @@ int detectBall(Mat img, VectorRect *maxRect)
 					}
 				}
 				//Find max size
-				if (xMax - xMin > maxRect->w)
+				if (
+#ifdef IS_NEGATIVE
+					yMax >
+#else
+					yMin <
+#endif // IS_NEGATIVE
+					y_realMin)
 				{
 					maxRect->w = xMax - xMin;
 					maxRect->h = yMax - yMin;
 					maxRect->x = (xMax + xMin) / 2;
 					maxRect->y = (yMax + yMin) / 2;
+#ifdef IS_NEGATIVE
+					y_realMin = yMax;
+#else
+					y_realMin = yMin;
+#endif // IS_NEGATIVE
 #ifdef IS_NEGATIVE
 					maxRect->y = rows - maxRect->y;
 #endif // IS_NEGATIVE
@@ -333,11 +363,15 @@ int cvMain(void)
 			{
 				iLowH = LH_BALL; //Ball
 				iHighH = HH_BALL;
+				iLowS = LS_BALL;
+				iLowV = LV_BALL;
 			}
 			else if (key == 2)
 			{
 				iLowH = LH_RECT; //Rect
 				iHighH = HH_RECT;
+				iLowS = LS_RECT;
+				iLowV = LV_RECT;
 			}
 		}
 		if (key == 1 || key == 3)
