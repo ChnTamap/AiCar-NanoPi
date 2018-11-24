@@ -12,6 +12,8 @@ using namespace std;
 // #define IS_DISPLAY
 #define IS_SEND
 // #define IS_COLOR
+// #define IS_CHANGE_FRAME
+#define IS_DEBUG
 #define IS_NEGATIVE
 #define TICK_MS 1000000
 
@@ -26,16 +28,21 @@ using namespace std;
 #define HH_BALL HH_BLUE
 #define LH_RECT LH_GREEN
 #define HH_RECT HH_GREEN
+#define MISS_WIDTH
 //SV
-#define LS_BALL 60
-#define LV_BALL 100
+#define LS_BALL 110 //60
+#define LV_BALL 43  //100
 #define LS_RECT 100
 #define LV_RECT 45
+//FRAME
+#define FRAME_HIGH_HEIGHT 120
+#define FRAME_LOW_HEIGHT 100
+#define FRAME_CHANGE_TIMES 8
 int iLowH = LH_BALL;  //69
 int iHighH = HH_BALL; //96
-int iLowS = 80;
+int iLowS = LS_BALL;
 int iHighS = 255;
-int iLowV = 45;
+int iLowV = LV_BALL;
 int iHighV = 255;
 int iColor = 0;
 //Image
@@ -43,6 +50,8 @@ Mat frame;
 Mat src;
 //Cam
 VideoCapture cap;
+int changeCount = FRAME_CHANGE_TIMES;
+int highFlag = 1; //高清标志
 
 void selectColor(int v)
 {
@@ -231,7 +240,8 @@ int detectBall(Mat img, VectorRect *maxRect)
 #else
 					yMin <
 #endif // IS_NEGATIVE
-					y_realMin)
+						y_realMin &&
+					(yMax - yMin > 10))
 				{
 					maxRect->w = xMax - xMin;
 					maxRect->h = yMax - yMin;
@@ -249,9 +259,6 @@ int detectBall(Mat img, VectorRect *maxRect)
 			}
 		}
 	}
-
-	cout << "(" << maxRect->x << "," << maxRect->y << "," << maxRect->w << "," << maxRect->h << ")";
-	cout << "        " << flush;
 
 	return 0;
 }
@@ -325,7 +332,9 @@ int cvMain(void)
 #endif // IS_DISPLAY
 
 		Vector<Mat> hsvPanels;
+#ifdef IS_DEBUG
 		cout << "\r";
+#endif
 		//RGB To HSV
 		cvtColor(src, src, CV_BGR2HSV);
 		//Find Color
@@ -342,19 +351,6 @@ int cvMain(void)
 #endif // IS_DISPLAY
 
 		//Count
-		count++;
-		if ((double)getTickCount() - tickSec > (TICK_MS * 1000))
-		{
-			cout << "Real FPS:" << count << "|" << key << "||" << flush;
-			count = 0;
-			tickSec = (double)getTickCount();
-		}
-		//End tick
-		tick = (double)getTickCount() - tick;
-		if (tick < (TICK_MS * 25))
-		{
-			usleep(((TICK_MS * 25) - tick) / 1000);
-		}
 		//Receive Command
 		if (serialDataAvail(fd))
 		{
@@ -377,7 +373,40 @@ int cvMain(void)
 		if (key == 1 || key == 3)
 		{
 			maxRect.x = 0;
+			maxRect.h = 0;
 		}
+#ifdef IS_CHANGE_FRAME
+		if (!highFlag)
+		{
+			//低分辨率
+			maxRect.x *= 2;
+			maxRect.y *= 2;
+			maxRect.w *= 2;
+			maxRect.h *= 2;
+		}
+		if (maxRect.h > FRAME_HIGH_HEIGHT)
+		{
+			if (changeCount > 0)
+				changeCount--;
+			else if (highFlag)
+			{
+				cap.set(CV_CAP_PROP_FRAME_WIDTH, 320);
+				cap.set(CV_CAP_PROP_FRAME_HEIGHT, 240);
+				highFlag = 0;
+			}
+		}
+		else if (maxRect.h < FRAME_LOW_HEIGHT)
+		{
+			if (changeCount < FRAME_CHANGE_TIMES * 2)
+				changeCount++;
+			else if (!highFlag)
+			{
+				cap.set(CV_CAP_PROP_FRAME_WIDTH, 640);
+				cap.set(CV_CAP_PROP_FRAME_HEIGHT, 480);
+				highFlag = 1;
+			}
+		}
+#endif
 #ifdef IS_SEND
 		//Send Rect (Test WiringPi)
 		if (maxRect.x)
@@ -388,6 +417,24 @@ int cvMain(void)
 			}
 		}
 #endif // IS_SEND
+#ifdef IS_DEBUG
+		count++;
+		if ((double)getTickCount() - tickSec > (TICK_MS * 1000))
+		{
+			cout << "(" << maxRect.x << "," << maxRect.y << "," << maxRect.w << "," << maxRect.h << ")";
+			cout << "    " << changeCount << "    ";
+			cout << "Real FPS:" << count << "|" << key << "||" << flush;
+			count = 0;
+			tickSec = (double)getTickCount();
+		}
+		//End tick
+		tick = (double)getTickCount() - tick;
+//关闭帧率限制
+// if (tick < (TICK_MS * 25))
+// {
+// 	usleep(((TICK_MS * 25) - tick) / 1000);
+// }
+#endif
 	}
 	return 0;
 }
